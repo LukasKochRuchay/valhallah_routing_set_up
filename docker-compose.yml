@@ -1,0 +1,24 @@
+services:
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted:latest
+    container_name: valhalla
+    ports:
+      - "8002:8002"
+    volumes:
+      # Downloaded OSM data and built routing tiles are stored here,
+      # so they survive container restarts.
+      - ./custom_files:/custom_files
+      # GTFS timetables for public transport, one unzipped feed per subfolder (e.g. gtfs_feeds/bvg/)
+      - ./gtfs_feeds:/gtfs_feeds
+    environment:
+      # OpenStreetMap extract(s) to download and build tiles from.
+      # Start small; bigger regions take much longer to build and need more RAM.
+      - tile_urls=https://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf
+      - server_threads=2
+      - build_admins=True
+      - build_time_zones=True
+      - build_elevation=False
+      # Build transit tiles from gtfs_feeds/ if none exist yet ("Force" = always rebuild)
+      - build_transit=True
+      - force_rebuild=False
+    restart: unless-stopped
